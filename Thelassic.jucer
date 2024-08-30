@@ -4,7 +4,7 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" version="0.1.0"
               companyName="FOEsoft" companyCopyright="&#169;2024" companyEmail="admin@foesoft.com"
               pluginFormats="buildAAX,buildStandalone,buildVST3" pluginChannelConfigs="{1, 1}, {2, 2}"
-              pluginVST3Category="Filter,Fx" pluginAAXCategory="0,8192">
+              pluginVST3Category="Filter,Fx" pluginAAXCategory="0,8192" cppLanguageStandard="20">
   <MAINGROUP id="rlusWq" name="Thelassic">
     <GROUP id="{67A95BE0-750D-3AB3-AFA6-3F74F5E82BC0}" name="Source">
       <FILE id="SEu7B7" name="PluginProcessor.cpp" compile="1" resource="0"

@@ -95,6 +95,22 @@ void ThelassicAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    
+    juce::dsp::ProcessSpec spec;
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = getTotalNumOutputChannels();
+    spec.sampleRate = sampleRate;
+    
+    
+    leftChain.prepare(spec);
+    rightChain.prepare(spec);
+    
+    auto chainSettings = getChainSettings(apvts);
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, chainSettings.midFreq, chainSettings.midQ, juce::Decibels::decibelsToGain(chainSettings.midGain));
+    
+    *leftChain.get<ChainPositions::Mid>().coefficients = *peakCoefficients;
+    *rightChain.get<ChainPositions::Mid>().coefficients = *peakCoefficients;
+    
 }
 
 void ThelassicAudioProcessor::releaseResources()
@@ -141,21 +157,26 @@ void ThelassicAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     // This is here to avoid people getting screaming feedback
     // when they first compile a plugin, but obviously you don't need to keep
     // this code if your algorithm always overwrites all the output channels.
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+    for (auto i = totalNumInputChannels; i < totalNumInputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
+    auto chainSettings = getChainSettings(apvts);
+    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(), chainSettings.midFreq, chainSettings.midQ, juce::Decibels::decibelsToGain(chainSettings.midGain));
+    
+    *leftChain.get<ChainPositions::Mid>().coefficients = *peakCoefficients;
+    *rightChain.get<ChainPositions::Mid>().coefficients = *peakCoefficients;
+    
+    auto block = juce::dsp::AudioBlock<float>(buffer);
+    
+    auto leftBlock = block.getSingleChannelBlock(0);
+    auto rightBlock = block.getSingleChannelBlock(1);
 
-        // ..do something to the data...
-    }
+    juce::dsp::ProcessContextReplacing<float> leftContext(leftBlock);
+    juce::dsp::ProcessContextReplacing<float> rightContext(leftBlock);
+
+    leftChain.process(leftContext);
+    rightChain.process(rightContext);
+    
 }
 
 //==============================================================================
@@ -182,6 +203,21 @@ void ThelassicAudioProcessor::setStateInformation (const void* data, int sizeInB
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+}
+
+ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts)
+{
+    ChainSettings settings;
+    
+    settings.loCutFreq = apvts.getRawParameterValue("Lo Cut Freq")->load();
+    settings.hiCutFreq = apvts.getRawParameterValue("Hi Cut Freq")->load();
+    settings.midFreq = apvts.getRawParameterValue("Mid Freq")->load();
+    settings.midGain = apvts.getRawParameterValue("Mid Gain")->load();
+    settings.midQ = apvts.getRawParameterValue("Mid Q")->load();
+    settings.loCutSlope = apvts.getRawParameterValue("Lo Cut Slope")->load();
+    settings.hiCutSlope = apvts.getRawParameterValue("Hi Cut Slope")->load();
+    
+    return settings;
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout
