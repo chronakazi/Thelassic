@@ -10,11 +10,19 @@
 
 #include <JuceHeader.h>
 
+enum Slope
+{
+    Slope_12,
+    Slope_24,
+    Slope_36,
+    Slope_48
+};
+
 struct ChainSettings
 {
     float midFreq { 0 }, midGain { 0 }, midQ { 1.f };
     float loCutFreq { 0 }, hiCutFreq { 0 };
-    int loCutSlope { 0 }, hiCutSlope { 0 };
+    Slope loCutSlope { Slope::Slope_12 }, hiCutSlope { Slope::Slope_12 };
 };
 
 ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
@@ -64,13 +72,19 @@ public:
     
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Parameters", createParameterLayout()};
+    
 
 private:
     using Filter = juce::dsp::IIR::Filter<float>;
+//    using FilterCoefs = juce::dsp::IIR::Coefficients<float>;
     using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
     using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
-    
+
     MonoChain leftChain, rightChain;
+    
+//    using StereoFilter = juce::dsp::ProcessorDuplicator<Filter, FilterCoefs>;
+//    using StereoCutFilter = juce::dsp::ProcessorChain<StereoFilter, StereoFilter, StereoFilter, StereoFilter>;
+//    juce::dsp::ProcessorChain<StereoCutFilter, StereoFilter, StereoCutFilter> stereoChain;
     
     enum ChainPositions
     {
