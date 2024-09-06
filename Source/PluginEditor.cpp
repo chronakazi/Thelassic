@@ -9,25 +9,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-//==============================================================================
-ThelassicAudioProcessorEditor::ThelassicAudioProcessorEditor (ThelassicAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p),
-    midFreqSliderAttachment(audioProcessor.apvts, "Mid Freq", midFreqSlider),
-    midGainSliderAttachment(audioProcessor.apvts, "Mid Gain", midGainSlider),
-    midQSliderAttachment(audioProcessor.apvts, "Mid Q", midQSlider),
-    loCutFreqSliderAttachment(audioProcessor.apvts, "Lo Cut Freq", loCutFreqSlider),
-    hiCutFreqSliderAttachment(audioProcessor.apvts, "Hi Cut Freq", hiCutFreqSlider),
-    loCutSlopeSliderAttachment(audioProcessor.apvts, "Lo Cut Slope", loCutSlopeSlider),
-    hiCutSlopeSliderAttachment(audioProcessor.apvts, "Hi Cut Slope", hiCutSlopeSlider)
+ResponseCurveComponent::ResponseCurveComponent(ThelassicAudioProcessor& p) : audioProcessor(p)
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    
-    for (auto* comp : getComps())
-    {
-        addAndMakeVisible(comp);
-    }
-    
     const auto& params = audioProcessor.getParameters();
     for (auto param : params)
     {
@@ -35,11 +18,9 @@ ThelassicAudioProcessorEditor::ThelassicAudioProcessorEditor (ThelassicAudioProc
     }
     
     startTimerHz(60);
-    
-    setSize (600, 600);
 }
 
-ThelassicAudioProcessorEditor::~ThelassicAudioProcessorEditor()
+ResponseCurveComponent::~ResponseCurveComponent()
 {
     const auto& params = audioProcessor.getParameters();
     for (auto param : params)
@@ -49,15 +30,38 @@ ThelassicAudioProcessorEditor::~ThelassicAudioProcessorEditor()
 
 }
 
-//==============================================================================
-void ThelassicAudioProcessorEditor::paint (juce::Graphics& g)
+void ResponseCurveComponent::parameterValueChanged(int parameterIndex, float newValue)
+{
+    parametersChanged.set(true);
+}
+
+void ResponseCurveComponent::timerCallback()
+{
+    if (parametersChanged.compareAndSetBool(false, true))
+    {
+        //params updated?
+        auto chainSettings = getChainSettings(audioProcessor.apvts);
+        auto peakCoefficients = makePeakFilter(chainSettings, audioProcessor.getSampleRate());
+        updateCoefficients(monoChain.get<ChainPositions::Mid>().coefficients, peakCoefficients);
+        
+        auto loCutCoefficients = makeLoCutFilter(chainSettings, audioProcessor.getSampleRate());
+        auto hiCutCoefficients = makeHiCutFilter(chainSettings, audioProcessor.getSampleRate());
+        
+        updateCutFilter(monoChain.get<ChainPositions::LoCut>(), loCutCoefficients, chainSettings.loCutSlope);
+        updateCutFilter(monoChain.get<ChainPositions::HiCut>(), hiCutCoefficients, chainSettings.hiCutSlope);
+        
+        //trigger redraw
+        repaint();
+    }
+}
+
+void ResponseCurveComponent::paint (juce::Graphics& g)
 {
     using namespace juce;
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (Colours::darkslategrey);
+    g.fillAll (Colours::black);
 
-    auto bounds = getLocalBounds();
-    auto responseArea = bounds.removeFromTop(bounds.getHeight() * 0.50);
+    auto responseArea = getLocalBounds();
     auto w = responseArea.getWidth();
     
     auto& locut = monoChain.get<ChainPositions::LoCut>();
@@ -123,6 +127,43 @@ void ThelassicAudioProcessorEditor::paint (juce::Graphics& g)
     
 }
 
+//==============================================================================
+ThelassicAudioProcessorEditor::ThelassicAudioProcessorEditor (ThelassicAudioProcessor& p)
+    : AudioProcessorEditor (&p), audioProcessor (p),
+    responseCurveComponent(audioProcessor),
+    midFreqSliderAttachment(audioProcessor.apvts, "Mid Freq", midFreqSlider),
+    midGainSliderAttachment(audioProcessor.apvts, "Mid Gain", midGainSlider),
+    midQSliderAttachment(audioProcessor.apvts, "Mid Q", midQSlider),
+    loCutFreqSliderAttachment(audioProcessor.apvts, "Lo Cut Freq", loCutFreqSlider),
+    hiCutFreqSliderAttachment(audioProcessor.apvts, "Hi Cut Freq", hiCutFreqSlider),
+    loCutSlopeSliderAttachment(audioProcessor.apvts, "Lo Cut Slope", loCutSlopeSlider),
+    hiCutSlopeSliderAttachment(audioProcessor.apvts, "Hi Cut Slope", hiCutSlopeSlider)
+{
+    // Make sure that before the constructor has finished, you've set the
+    // editor's size to whatever you need it to be.
+    
+    for (auto* comp : getComps())
+    {
+        addAndMakeVisible(comp);
+    }
+    
+    setSize (600, 600);
+}
+
+ThelassicAudioProcessorEditor::~ThelassicAudioProcessorEditor()
+{
+    
+}
+
+//==============================================================================
+void ThelassicAudioProcessorEditor::paint (juce::Graphics& g)
+{
+    using namespace juce;
+    // (Our component is opaque, so we must completely fill the background with a solid colour)
+    g.fillAll (Colours::darkslategrey);
+
+}
+
 void ThelassicAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
@@ -130,6 +171,8 @@ void ThelassicAudioProcessorEditor::resized()
     
     auto bounds = getLocalBounds();
     auto responseArea = bounds.removeFromTop(bounds.getHeight() * 0.50);
+    
+    responseCurveComponent.setBounds(responseArea);
     
     auto loCutArea = bounds.removeFromLeft(bounds.getWidth() * 0.33);
     auto hiCutArea = bounds.removeFromRight(bounds.getWidth() * 0.5);
@@ -145,31 +188,6 @@ void ThelassicAudioProcessorEditor::resized()
     
 }
 
-void ThelassicAudioProcessorEditor::parameterValueChanged(int parameterIndex, float newValue)
-{
-    parametersChanged.set(true);
-}
-
-void ThelassicAudioProcessorEditor::timerCallback()
-{
-    if (parametersChanged.compareAndSetBool(false, true))
-    {
-        //params updated?
-        auto chainSettings = getChainSettings(audioProcessor.apvts);
-        auto peakCoefficients = makePeakFilter(chainSettings, audioProcessor.getSampleRate());
-        updateCoefficients(monoChain.get<ChainPositions::Mid>().coefficients, peakCoefficients);
-        
-        auto loCutCoefficients = makeLoCutFilter(chainSettings, audioProcessor.getSampleRate());
-        auto hiCutCoefficients = makeHiCutFilter(chainSettings, audioProcessor.getSampleRate());
-        
-        updateCutFilter(monoChain.get<ChainPositions::LoCut>(), loCutCoefficients, chainSettings.loCutSlope);
-        updateCutFilter(monoChain.get<ChainPositions::HiCut>(), hiCutCoefficients, chainSettings.hiCutSlope);
-        
-        //trigger redraw
-        repaint();
-    }
-}
-
 std::vector<juce::Component*> ThelassicAudioProcessorEditor::getComps()
 {
     return
@@ -180,6 +198,7 @@ std::vector<juce::Component*> ThelassicAudioProcessorEditor::getComps()
         &loCutFreqSlider,
         &hiCutFreqSlider,
         &loCutSlopeSlider,
-        &hiCutSlopeSlider
+        &hiCutSlopeSlider,
+        &responseCurveComponent
     };
 }
