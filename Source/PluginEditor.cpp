@@ -15,7 +15,13 @@ ThelassicAudioProcessorEditor::ThelassicAudioProcessorEditor (ThelassicAudioProc
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    
+    for (auto* comp : getComps())
+    {
+        addAndMakeVisible(comp);
+    }
+    
+    setSize (600, 600);
 }
 
 ThelassicAudioProcessorEditor::~ThelassicAudioProcessorEditor()
@@ -37,4 +43,34 @@ void ThelassicAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
+    
+    auto bounds = getLocalBounds();
+    auto responseArea = bounds.removeFromTop(bounds.getHeight() * 0.50);
+    
+    auto loCutArea = bounds.removeFromLeft(bounds.getWidth() * 0.33);
+    auto hiCutArea = bounds.removeFromRight(bounds.getWidth() * 0.5);
+    
+    loCutFreqSlider.setBounds(loCutArea.removeFromTop(loCutArea.getHeight() * 0.5));
+    loCutSlopeSlider.setBounds(loCutArea);
+    hiCutFreqSlider.setBounds(hiCutArea.removeFromTop(hiCutArea.getHeight() * 0.5));
+    hiCutSlopeSlider.setBounds(hiCutArea);
+    
+    midFreqSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.33));
+    midGainSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.5));
+    midQSlider.setBounds(bounds);
+    
+}
+
+std::vector<juce::Component*> ThelassicAudioProcessorEditor::getComps()
+{
+    return
+    {
+        &midFreqSlider,
+        &midGainSlider,
+        &midQSlider,
+        &loCutFreqSlider,
+        &hiCutFreqSlider,
+        &loCutSlopeSlider,
+        &hiCutSlopeSlider
+    };
 }
