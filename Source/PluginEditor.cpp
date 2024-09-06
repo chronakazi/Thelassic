@@ -130,6 +130,14 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
 //==============================================================================
 ThelassicAudioProcessorEditor::ThelassicAudioProcessorEditor (ThelassicAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p),
+    midFreqSlider(*audioProcessor.apvts.getParameter("Mid Freq"), "hz"),
+    midGainSlider(*audioProcessor.apvts.getParameter("Mid Gain"), "db"),
+    midQSlider(*audioProcessor.apvts.getParameter("Mid Q"), ""),
+    loCutFreqSlider(*audioProcessor.apvts.getParameter("Lo Cut Freq"), "hz"),
+    hiCutFreqSlider(*audioProcessor.apvts.getParameter("Hi Cut Freq"), "hz"),
+    loCutSlopeSlider(*audioProcessor.apvts.getParameter("Lo Cut Slope"), "db/oct"),
+    hiCutSlopeSlider(*audioProcessor.apvts.getParameter("Hi Cut Slope"), "db/oct"),
+
     responseCurveComponent(audioProcessor),
     midFreqSliderAttachment(audioProcessor.apvts, "Mid Freq", midFreqSlider),
     midGainSliderAttachment(audioProcessor.apvts, "Mid Gain", midGainSlider),
