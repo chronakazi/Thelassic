@@ -221,15 +221,23 @@ ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts)
     return settings;
 }
 
+Coefficients makePeakFilter(const ChainSettings& chainSettings, double sampleRate)
+{
+    return juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate,
+                                                               chainSettings.midFreq,
+                                                               chainSettings.midQ,
+                                                               juce::Decibels::decibelsToGain(chainSettings.midGain));
+}
+
 void ThelassicAudioProcessor::updatePeakFilter(const ChainSettings &chainSettings)
 {
-    auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(), chainSettings.midFreq, chainSettings.midQ, juce::Decibels::decibelsToGain(chainSettings.midGain));
+    auto peakCoefficients = makePeakFilter(chainSettings, getSampleRate());
     
     updateCoefficients(leftChain.get<ChainPositions::Mid>().coefficients, peakCoefficients);
     updateCoefficients(rightChain.get<ChainPositions::Mid>().coefficients, peakCoefficients);
 }
 
-void ThelassicAudioProcessor::updateCoefficients(Coefficients &old, const Coefficients &replacements)
+void updateCoefficients(Coefficients &old, const Coefficients &replacements)
 {
     *old = *replacements;
 }
