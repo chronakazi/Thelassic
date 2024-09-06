@@ -28,11 +28,25 @@ ThelassicAudioProcessorEditor::ThelassicAudioProcessorEditor (ThelassicAudioProc
         addAndMakeVisible(comp);
     }
     
+    const auto& params = audioProcessor.getParameters();
+    for (auto param : params)
+    {
+        param->addListener(this);
+    }
+    
+    startTimerHz(60);
+    
     setSize (600, 600);
 }
 
 ThelassicAudioProcessorEditor::~ThelassicAudioProcessorEditor()
 {
+    const auto& params = audioProcessor.getParameters();
+    for (auto param : params)
+    {
+        param->removeListener(this);
+    }
+
 }
 
 //==============================================================================
@@ -141,7 +155,18 @@ void ThelassicAudioProcessorEditor::timerCallback()
     if (parametersChanged.compareAndSetBool(false, true))
     {
         //params updated?
+        auto chainSettings = getChainSettings(audioProcessor.apvts);
+        auto peakCoefficients = makePeakFilter(chainSettings, audioProcessor.getSampleRate());
+        updateCoefficients(monoChain.get<ChainPositions::Mid>().coefficients, peakCoefficients);
+        
+        auto loCutCoefficients = makeLoCutFilter(chainSettings, audioProcessor.getSampleRate());
+        auto hiCutCoefficients = makeHiCutFilter(chainSettings, audioProcessor.getSampleRate());
+        
+        updateCutFilter(monoChain.get<ChainPositions::LoCut>(), loCutCoefficients, chainSettings.loCutSlope);
+        updateCutFilter(monoChain.get<ChainPositions::HiCut>(), hiCutCoefficients, chainSettings.hiCutSlope);
+        
         //trigger redraw
+        repaint();
     }
 }
 

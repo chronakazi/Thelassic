@@ -244,9 +244,7 @@ void updateCoefficients(Coefficients &old, const Coefficients &replacements)
 
 void ThelassicAudioProcessor::updateLowCutFilters(const ChainSettings &chainSettings)
 {
-    auto lowCutCoefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(chainSettings.loCutFreq,
-                                                                                                      getSampleRate(),
-                                                                                                      2 *(chainSettings.loCutSlope + 1));
+    auto lowCutCoefficients = makeLoCutFilter(chainSettings, getSampleRate());
     
     auto& leftLowCut = leftChain.get<ChainPositions::LoCut>();
     auto& rightLowCut = rightChain.get<ChainPositions::LoCut>();
@@ -257,9 +255,7 @@ void ThelassicAudioProcessor::updateLowCutFilters(const ChainSettings &chainSett
 
 void ThelassicAudioProcessor::updateHighCutFilters(const ChainSettings &chainSettings)
 {
-    auto highCutCoefficients = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(chainSettings.hiCutFreq,
-                                                                                                          getSampleRate(),
-                                                                                                          2 *(chainSettings.hiCutSlope + 1));
+    auto highCutCoefficients = makeHiCutFilter(chainSettings, getSampleRate());
     
     auto& leftHighCut = leftChain.get<ChainPositions::HiCut>();
     auto& rightHighCut = rightChain.get<ChainPositions::HiCut>();
