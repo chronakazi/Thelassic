@@ -27,6 +27,17 @@ struct ChainSettings
 
 ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
 
+using Filter = juce::dsp::IIR::Filter<float>;
+using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
+using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
+
+enum ChainPositions
+{
+    LoCut,
+    Mid,
+    HiCut
+};
+
 //==============================================================================
 
 class ThelassicAudioProcessor  : public juce::AudioProcessor
@@ -74,18 +85,7 @@ public:
     
 
 private:
-    using Filter = juce::dsp::IIR::Filter<float>;
-    using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
-    using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
-
     MonoChain leftChain, rightChain;
-    
-    enum ChainPositions
-    {
-        LoCut,
-        Mid,
-        HiCut
-    };
     
     void updatePeakFilter(const ChainSettings& chainSettings);
     using Coefficients = Filter::CoefficientsPtr;
