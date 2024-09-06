@@ -39,12 +39,23 @@ private:
     ThelassicAudioProcessor& audioProcessor;
     
     CustomRotarySlider midFreqSlider,
-    midGainSlider,
-    midQSlider,
-    loCutFreqSlider,
-    hiCutFreqSlider,
-    loCutSlopeSlider,
-    hiCutSlopeSlider;
+                       midGainSlider,
+                       midQSlider,
+                       loCutFreqSlider,
+                       hiCutFreqSlider,
+                       loCutSlopeSlider,
+                       hiCutSlopeSlider;
+    
+    using APVTS = juce::AudioProcessorValueTreeState;
+    using Attachment = APVTS::SliderAttachment;
+    
+    Attachment midFreqSliderAttachment,
+               midGainSliderAttachment,
+               midQSliderAttachment,
+               loCutFreqSliderAttachment,
+               hiCutFreqSliderAttachment,
+               loCutSlopeSliderAttachment,
+               hiCutSlopeSliderAttachment;
     
     std::vector<juce::Component*> getComps();
 

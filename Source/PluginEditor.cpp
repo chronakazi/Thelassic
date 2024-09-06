@@ -11,7 +11,14 @@
 
 //==============================================================================
 ThelassicAudioProcessorEditor::ThelassicAudioProcessorEditor (ThelassicAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor (&p), audioProcessor (p),
+    midFreqSliderAttachment(audioProcessor.apvts, "Mid Freq", midFreqSlider),
+    midGainSliderAttachment(audioProcessor.apvts, "Mid Gain", midGainSlider),
+    midQSliderAttachment(audioProcessor.apvts, "Mid Q", midQSlider),
+    loCutFreqSliderAttachment(audioProcessor.apvts, "Lo Cut Freq", loCutFreqSlider),
+    hiCutFreqSliderAttachment(audioProcessor.apvts, "Hi Cut Freq", hiCutFreqSlider),
+    loCutSlopeSliderAttachment(audioProcessor.apvts, "Lo Cut Slope", loCutSlopeSlider),
+    hiCutSlopeSliderAttachment(audioProcessor.apvts, "Hi Cut Slope", hiCutSlopeSlider)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
