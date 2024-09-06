@@ -95,7 +95,32 @@ void RotarySliderWithLabels::paint(juce::Graphics &g)
                                       jmap(getValue(), range.getStart(), range.getEnd(), 0.0, 1.0),
                                       startAng, endAng, *this);
     
+//    perimeter labels
+    auto center = sliderBounds.toFloat().getCentre();
+    auto radius = sliderBounds.getWidth() * .5f;
     
+    g.setColour(Colours::oldlace);
+    g.setFont(getTextHeight());
+    
+    auto numChoices = labels.size();
+    for (int i = 0; i < numChoices; ++i)
+    {
+        auto pos = labels[i].pos;
+        jassert(0.f <= pos);
+        jassert(pos <= 1.f);
+        
+        auto ang = jmap(pos, 0.f, 1.f, startAng, endAng);
+        
+        auto c = center.getPointOnCircumference(radius + getTextHeight() * 0.5f + 1, ang);
+        
+        Rectangle<float> r;
+        auto str = labels[i].label;
+        r.setSize(g.getCurrentFont().getStringWidth(str), getTextHeight());
+        r.setCentre(c);
+        r.setY(r.getY() + getTextHeight());
+        
+        g.drawFittedText(str, r.toNearestInt(), juce::Justification::centred, 1);
+    }
 }
 
 juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const
@@ -292,6 +317,27 @@ ThelassicAudioProcessorEditor::ThelassicAudioProcessorEditor (ThelassicAudioProc
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
+    
+    midFreqSlider.labels.add({0.f, "20 hz"});
+    midFreqSlider.labels.add({1.f, "20 khz"});
+    
+    midGainSlider.labels.add({0.f, "-24 db"});
+    midGainSlider.labels.add({1.f, "+24 db"});
+    
+    midQSlider.labels.add({0.f, "broad"});
+    midQSlider.labels.add({1.f, "narrow"});
+    
+    loCutFreqSlider.labels.add({0.f, "20 hz"});
+    loCutFreqSlider.labels.add({1.f, "20 khz"});
+    
+    loCutSlopeSlider.labels.add({0.f, "gentle"});
+    loCutSlopeSlider.labels.add({1.f, "abrupt"});
+    
+    hiCutFreqSlider.labels.add({0.f, "20 hz"});
+    hiCutFreqSlider.labels.add({1.f, "20 khz"});
+    
+    hiCutSlopeSlider.labels.add({0.f, "gentle"});
+    hiCutSlopeSlider.labels.add({1.f, "abrupt"});
     
     for (auto* comp : getComps())
     {
