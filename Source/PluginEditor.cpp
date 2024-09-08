@@ -238,7 +238,7 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
     
     g.drawImage(background, getLocalBounds().toFloat());
 
-    auto responseArea = getAnalysisArea();
+    auto responseArea = getRenderArea();
     auto w = responseArea.getWidth();
     
     auto& locut = monoChain.get<ChainPositions::LoCut>();
@@ -313,13 +313,13 @@ void ResponseCurveComponent::resized()
     
     Array<float> freqs
     {
-        25, 50, 75, 100,
-        250, 500, 750, 1000,
-        2500, 5000, 7500, 10000,
+        20, 50, 100,
+        200, 500, 1000,
+        2000, 5000, 10000,
         20000
     };
     
-    auto renderArea = getAnalysisArea();
+    auto renderArea = getRenderArea();
     auto left = renderArea.getX();
     auto right = renderArea.getRight();
     auto top = renderArea.getY();
@@ -329,7 +329,7 @@ void ResponseCurveComponent::resized()
     Array<float> xs;
     for (auto f : freqs)
     {
-        auto normX = mapFromLog10(f, 25.f, 20000.f);
+        auto normX = mapFromLog10(f, 20.f, 20000.f);
         xs.add(left + width * normX);
     }
     
@@ -341,7 +341,7 @@ void ResponseCurveComponent::resized()
     
     Array<float> gain
     {
-        -24, -12, 0 , 12, 24
+        -24, -18, -12, -6, 0, 6, 12, 18, 24
     };
     
     for (auto gDb : gain)
@@ -352,6 +352,38 @@ void ResponseCurveComponent::resized()
         g.drawHorizontalLine(y, left, right);
     }
 
+    g.setColour(Colours::dimgrey);
+    const int fontHeight = 10;
+    g.setFont(fontHeight);
+    
+    for (int i = 0; i < freqs.size(); ++i)
+    {
+        auto f = freqs[i];
+        auto x = xs[i];
+        
+        bool addK = false;
+        String str;
+        if ( f > 999.f)
+        {
+            addK = true;
+            f /= 1000.f;
+        }
+        
+        str << f;
+        if (addK)
+            str << "k";
+        str << "hz";
+        
+        auto textWidth = g.getCurrentFont().getStringWidth(str);
+        
+        Rectangle<int> r;
+        r.setSize(textWidth, fontHeight);
+        r.setCentre(x, 0);
+        r.setY(bottom + 2);
+        
+        g.drawFittedText(str, r, juce::Justification::centred, 1);
+    }
+    
 }
 
 juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
@@ -361,21 +393,21 @@ juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
 //    bounds.reduce(15, //JUCE_LIVE_CONSTANT(5),
 //                  15); //JUCE_LIVE_CONSTANT(5));
     
-    bounds.removeFromTop(15);
+    bounds.removeFromBottom(15);
     bounds.removeFromLeft(15);
     bounds.removeFromRight(15);
     
     return bounds;
 }
 
-juce::Rectangle<int> ResponseCurveComponent::getAnalysisArea()
-{
-    auto bounds = getRenderArea();
-    bounds.removeFromTop(4);
-    bounds.removeFromBottom(4);
-    return bounds;
-    
-}
+//juce::Rectangle<int> ResponseCurveComponent::getAnalysisArea()
+//{
+//    auto bounds = getRenderArea();
+//    bounds.removeFromTop(4);
+//    bounds.removeFromBottom(4);
+//    return bounds;
+//    
+//}
 
 //==============================================================================
 ThelassicAudioProcessorEditor::ThelassicAudioProcessorEditor (ThelassicAudioProcessor& p)
