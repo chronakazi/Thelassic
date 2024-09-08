@@ -238,7 +238,7 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
     
     g.drawImage(background, getLocalBounds().toFloat());
 
-    auto responseArea = getRenderArea();
+    auto responseArea = getAnalysisArea();
     auto w = responseArea.getWidth();
     
     auto& locut = monoChain.get<ChainPositions::LoCut>();
@@ -319,7 +319,7 @@ void ResponseCurveComponent::resized()
         20000
     };
     
-    auto renderArea = getRenderArea();
+    auto renderArea = getAnalysisArea();
     auto left = renderArea.getX();
     auto right = renderArea.getRight();
     auto top = renderArea.getY();
@@ -379,7 +379,7 @@ void ResponseCurveComponent::resized()
         Rectangle<int> r;
         r.setSize(textWidth, fontHeight);
         r.setCentre(x, 0);
-        r.setY(bottom + 4);
+        r.setY(1);
         
         g.drawFittedText(str, r, juce::Justification::centred, 1);
     }
@@ -402,6 +402,15 @@ void ResponseCurveComponent::resized()
         g.setColour(Colours::dimgrey);
 
         g.drawFittedText(str, r, juce::Justification::centred, 1);
+        
+        str.clear();
+        str << (gDb - 24.f);
+        
+        r.setX(2);
+        textWidth = g.getCurrentFont().getStringWidth(str);
+        r.setSize(textWidth, fontHeight);
+        g.setColour(Colours::dimgrey);
+        g.drawFittedText(str, r, juce::Justification::centred, 1);
     }
     
 }
@@ -410,24 +419,21 @@ juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
 {
     auto bounds = getLocalBounds();
     
-//    bounds.reduce(15, //JUCE_LIVE_CONSTANT(5),
-//                  15); //JUCE_LIVE_CONSTANT(5));
-    bounds.removeFromTop(5);
-    bounds.removeFromBottom(15);
+    bounds.removeFromTop(15);
     bounds.removeFromLeft(20);
     bounds.removeFromRight(20);
     
     return bounds;
 }
 
-//juce::Rectangle<int> ResponseCurveComponent::getAnalysisArea()
-//{
-//    auto bounds = getRenderArea();
-//    bounds.removeFromTop(4);
-//    bounds.removeFromBottom(4);
-//    return bounds;
-//    
-//}
+juce::Rectangle<int> ResponseCurveComponent::getAnalysisArea()
+{
+    auto bounds = getRenderArea();
+    bounds.removeFromTop(5);
+    bounds.removeFromBottom(5);
+    return bounds;
+    
+}
 
 //==============================================================================
 ThelassicAudioProcessorEditor::ThelassicAudioProcessorEditor (ThelassicAudioProcessor& p)
