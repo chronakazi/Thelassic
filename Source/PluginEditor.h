@@ -11,6 +11,14 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 
+enum ColorPalette
+{
+    Primary = 0xff222831,
+    Secondary = 0xff31363f,
+    Accent = 0xff76abae,
+    Tertiary = 0xffeeeeee,
+};
+
 struct LookAndFeel : juce::LookAndFeel_V4
 {
     void drawRotarySlider(juce::Graphics&,
@@ -71,6 +79,7 @@ juce::Timer
     
     void paint(juce::Graphics& g) override;
     
+    void resized() override;
 private:
     ThelassicAudioProcessor& audioProcessor;
     juce::Atomic<bool> parametersChanged {false};
@@ -78,6 +87,12 @@ private:
     MonoChain monoChain;
     
     void updateChain();
+    
+    juce::Image background;
+    
+    juce::Rectangle<int> getRenderArea();
+    
+    juce::Rectangle<int> getAnalysisArea();
 };
 
 //==============================================================================

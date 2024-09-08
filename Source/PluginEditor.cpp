@@ -24,11 +24,11 @@ void LookAndFeel::drawRotarySlider(juce::Graphics & g,
     auto bounds = Rectangle<float>(x, y, width, height);
     
 //    Rotary slider bg color
-    g.setColour(Colours::oldlace);
+    g.setColour(Colour(ColorPalette::Accent));
     g.fillEllipse(bounds);
     
 //    Rotary slider border color.
-    g.setColour(Colours::darkorange);
+    g.setColour(Colour(ColorPalette::Tertiary));
     g.drawEllipse(bounds, 1.f);
     
     if (auto* rswl = dynamic_cast<RotarySliderWithLabels*>(&slider))
@@ -50,7 +50,7 @@ void LookAndFeel::drawRotarySlider(juce::Graphics & g,
         
         p.applyTransform(AffineTransform().rotated(sliderAngRad, center.getX(), center.getY()));
         
-        g.setColour(Colours::burlywood);
+        g.setColour(Colour(ColorPalette::Tertiary));
         g.fillPath(p);
         
 //        Param text
@@ -61,10 +61,10 @@ void LookAndFeel::drawRotarySlider(juce::Graphics & g,
         r.setSize(strWidth + 4, rswl->getTextHeight() + 2);
         r.setCentre(bounds.getCentre());
         
-        g.setColour(Colours::oldlace);
+        g.setColour(Colour(ColorPalette::Accent));
         g.fillRect(r);
         
-        g.setColour(Colours::black);
+        g.setColour(Colour(ColorPalette::Secondary));
         g.drawFittedText(text, r.toNearestInt(), juce::Justification::centred, 1);
     }
 
@@ -99,7 +99,7 @@ void RotarySliderWithLabels::paint(juce::Graphics &g)
     auto center = sliderBounds.toFloat().getCentre();
     auto radius = sliderBounds.getWidth() * .5f;
     
-    g.setColour(Colours::oldlace);
+    g.setColour(Colour(ColorPalette::Tertiary));
     g.setFont(getTextHeight());
     
     auto numChoices = labels.size();
@@ -234,9 +234,11 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
 {
     using namespace juce;
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (Colours::black);
+    g.fillAll (Colour(ColorPalette::Primary));
+    
+    g.drawImage(background, getLocalBounds().toFloat());
 
-    auto responseArea = getLocalBounds();
+    auto responseArea = getAnalysisArea();
     auto w = responseArea.getWidth();
     
     auto& locut = monoChain.get<ChainPositions::LoCut>();
@@ -293,12 +295,85 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
         responseCurve.lineTo(responseArea.getX() + i, map(mags[i]));
     }
     
-    g.setColour(Colours::darkorange);
-    g.drawRoundedRectangle(responseArea.toFloat(), 4.f, 1.f);
+    g.setColour(Colour(ColorPalette::Tertiary));
+    g.drawRoundedRectangle(getRenderArea().toFloat(), 4.f, 1.f);
     
-    g.setColour(Colours::ghostwhite);
+    g.setColour(Colour(ColorPalette::Accent));
     g.strokePath(responseCurve, PathStrokeType(2.f));
     
+    
+}
+
+void ResponseCurveComponent::resized()
+{
+    using namespace juce;
+    background = Image(Image::PixelFormat::RGB, getWidth(), getHeight(), true);
+    
+    Graphics g(background);
+    
+    Array<float> freqs
+    {
+        25, 50, 75, 100,
+        250, 500, 750, 1000,
+        2500, 5000, 7500, 10000,
+        20000
+    };
+    
+    auto renderArea = getAnalysisArea();
+    auto left = renderArea.getX();
+    auto right = renderArea.getRight();
+    auto top = renderArea.getY();
+    auto bottom = renderArea.getBottom();
+    auto width = renderArea.getWidth();
+    
+    Array<float> xs;
+    for (auto f : freqs)
+    {
+        auto normX = mapFromLog10(f, 25.f, 20000.f);
+        xs.add(left + width * normX);
+    }
+    
+    g.setColour(Colours::dimgrey);
+    for (auto x : xs)
+    {
+        g.drawVerticalLine(x, top, bottom);
+    }
+    
+    Array<float> gain
+    {
+        -24, -12, 0 , 12, 24
+    };
+    
+    for (auto gDb : gain)
+    {
+        auto y = jmap(gDb, -24.f, 24.f, float(bottom), float(top));
+
+        g.setColour(gDb == 0.f ? Colour(ColorPalette::Tertiary) : Colours::dimgrey);
+        g.drawHorizontalLine(y, left, right);
+    }
+
+}
+
+juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
+{
+    auto bounds = getLocalBounds();
+    
+//    bounds.reduce(15, //JUCE_LIVE_CONSTANT(5),
+//                  15); //JUCE_LIVE_CONSTANT(5));
+    
+    bounds.removeFromTop(15);
+    bounds.removeFromLeft(15);
+    bounds.removeFromRight(15);
+    
+    return bounds;
+}
+
+juce::Rectangle<int> ResponseCurveComponent::getAnalysisArea()
+{
+    auto bounds = getRenderArea();
+    bounds.removeFromTop(4);
+    bounds.removeFromBottom(4);
+    return bounds;
     
 }
 
@@ -351,7 +426,7 @@ ThelassicAudioProcessorEditor::ThelassicAudioProcessorEditor (ThelassicAudioProc
         addAndMakeVisible(comp);
     }
     
-    setSize (600, 600);
+    setSize (550, 550);
 }
 
 ThelassicAudioProcessorEditor::~ThelassicAudioProcessorEditor()
@@ -364,7 +439,7 @@ void ThelassicAudioProcessorEditor::paint (juce::Graphics& g)
 {
     using namespace juce;
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (Colours::darkslategrey);
+    g.fillAll (Colour(ColorPalette::Secondary));
 
 }
 
@@ -374,7 +449,7 @@ void ThelassicAudioProcessorEditor::resized()
     // subcomponents in your editor..
     
     auto bounds = getLocalBounds();
-    auto responseArea = bounds.removeFromTop(bounds.getHeight() * 0.50);
+    auto responseArea = bounds.removeFromTop(bounds.getHeight() * 0.33);
     
     responseCurveComponent.setBounds(responseArea);
     
