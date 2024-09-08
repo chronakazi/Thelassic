@@ -379,8 +379,28 @@ void ResponseCurveComponent::resized()
         Rectangle<int> r;
         r.setSize(textWidth, fontHeight);
         r.setCentre(x, 0);
-        r.setY(bottom + 2);
+        r.setY(bottom + 4);
         
+        g.drawFittedText(str, r, juce::Justification::centred, 1);
+    }
+    
+    for (auto gDb : gain)
+    {
+        auto y = jmap(gDb, -24.f, 24.f, float(bottom), float(top));
+        
+        String str;
+        if (gDb > 0)
+            str << "+";
+        str << gDb;
+        
+        auto textWidth = g.getCurrentFont().getStringWidth(str);
+        Rectangle<int> r;
+        r.setSize(textWidth, fontHeight);
+        r.setX(getWidth() - textWidth);
+        r.setCentre(r.getCentreX(), y);
+        
+        g.setColour(Colours::dimgrey);
+
         g.drawFittedText(str, r, juce::Justification::centred, 1);
     }
     
@@ -392,10 +412,10 @@ juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
     
 //    bounds.reduce(15, //JUCE_LIVE_CONSTANT(5),
 //                  15); //JUCE_LIVE_CONSTANT(5));
-    
+    bounds.removeFromTop(5);
     bounds.removeFromBottom(15);
-    bounds.removeFromLeft(15);
-    bounds.removeFromRight(15);
+    bounds.removeFromLeft(20);
+    bounds.removeFromRight(20);
     
     return bounds;
 }
