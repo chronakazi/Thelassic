@@ -248,6 +248,8 @@ private:
     
     juce::Rectangle<int> getAnalysisArea();
     
+    juce::Rectangle<int> getFFTArea();
+    
     SingleChannelSimpleFifo<ThelassicAudioProcessor::BlockType>* leftChannelFifo;
     
     juce::AudioBuffer<float> monoBuffer;

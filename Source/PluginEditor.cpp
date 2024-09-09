@@ -186,7 +186,7 @@ leftChannelFifo(&audioProcessor.leftChannelFifo)
         param->addListener(this);
     }
     
-    leftChannelFFTDataGenerator.changeOrder(FFTOrder::order4096);
+    leftChannelFFTDataGenerator.changeOrder(FFTOrder::order2048);
     monoBuffer.setSize(1, leftChannelFFTDataGenerator.getFFTSize());
     
     updateChain();
@@ -233,7 +233,7 @@ void ResponseCurveComponent::timerCallback()
         }
     }
     
-    const auto fftBounds = getAnalysisArea().toFloat();
+    const auto fftBounds = getFFTArea().toFloat();
     const auto fftSize = leftChannelFFTDataGenerator.getFFTSize();
     const auto binWidth = audioProcessor.getSampleRate() / (double)fftSize;
     
@@ -342,12 +342,18 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
         responseCurve.lineTo(responseArea.getX() + i, map(mags[i]));
     }
     
+//    FFT analysis path
+    
+    leftChannelFFTPath.applyTransform(AffineTransform().translation(getFFTArea().getX(),
+                                                                    getFFTArea().getY()));
+    
     g.setColour(Colour(ColorPalette::Tertiary));
-    g.strokePath(leftChannelFFTPath, PathStrokeType(1));
+    g.strokePath(leftChannelFFTPath, PathStrokeType(1.f));
     
     g.setColour(Colour(ColorPalette::Tertiary));
     g.drawRoundedRectangle(getRenderArea().toFloat(), 4.f, 1.f);
     
+//    EQ response curve path
     g.setColour(Colour(ColorPalette::Accent));
     g.strokePath(responseCurve, PathStrokeType(2.f));
     
@@ -470,6 +476,7 @@ juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
     auto bounds = getLocalBounds();
     
     bounds.removeFromTop(15);
+//    bounds.removeFromBottom(2);
     bounds.removeFromLeft(20);
     bounds.removeFromRight(20);
     
@@ -481,6 +488,15 @@ juce::Rectangle<int> ResponseCurveComponent::getAnalysisArea()
     auto bounds = getRenderArea();
     bounds.removeFromTop(5);
     bounds.removeFromBottom(5);
+    return bounds;
+    
+}
+
+juce::Rectangle<int> ResponseCurveComponent::getFFTArea()
+{
+    auto bounds = getRenderArea();
+    bounds.removeFromRight(13);
+    bounds.removeFromBottom(15);
     return bounds;
     
 }
