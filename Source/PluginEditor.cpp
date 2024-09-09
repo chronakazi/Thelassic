@@ -177,13 +177,17 @@ juce::String RotarySliderWithLabels::getDisplayString() const
 }
 
 //====================================================================================
-ResponseCurveComponent::ResponseCurveComponent(ThelassicAudioProcessor& p) : audioProcessor(p)
+ResponseCurveComponent::ResponseCurveComponent(ThelassicAudioProcessor& p) : audioProcessor(p),
+leftChannelFifo(&audioProcessor.leftChannelFifo)
 {
     const auto& params = audioProcessor.getParameters();
     for (auto param : params)
     {
         param->addListener(this);
     }
+    
+    leftChannelFFTDataGenerator.changeOrder(FFTOrder::order4096);
+    monoBuffer.setSize(1, leftChannelFFTDataGenerator.getFFTSize());
     
     updateChain();
     
@@ -207,14 +211,57 @@ void ResponseCurveComponent::parameterValueChanged(int parameterIndex, float new
 
 void ResponseCurveComponent::timerCallback()
 {
+    
+    juce::AudioBuffer<float> tempIncomingBuffer;
+    
+    while (leftChannelFifo->getNumCompleteBuffersAvailable() > 0)
+    {
+        if (leftChannelFifo->getAudioBuffer(tempIncomingBuffer))
+        {
+            auto size = tempIncomingBuffer.getNumSamples();
+            
+            juce::FloatVectorOperations::copy(monoBuffer.getWritePointer(0, 0),
+                                              monoBuffer.getReadPointer(0, size),
+                                              monoBuffer.getNumSamples() - size);
+            
+            juce::FloatVectorOperations::copy(monoBuffer.getWritePointer(0, monoBuffer.getNumSamples() - size),
+                                              tempIncomingBuffer.getReadPointer(0, 0),
+                                              size);
+            
+            leftChannelFFTDataGenerator.produceFFTDataForRendering(monoBuffer, -48.f);
+            
+        }
+    }
+    
+    const auto fftBounds = getAnalysisArea().toFloat();
+    const auto fftSize = leftChannelFFTDataGenerator.getFFTSize();
+    const auto binWidth = audioProcessor.getSampleRate() / (double)fftSize;
+    
+    while (leftChannelFFTDataGenerator.getNumAvailableFFTDataBlocks())
+    {
+        std::vector<float> fftData;
+        if (leftChannelFFTDataGenerator.getFFTData(fftData))
+        {
+            pathProducer.generatePath(fftData, fftBounds, fftSize, binWidth, -48.f);
+        }
+    }
+    
+    while (pathProducer.getNumPathsAvailable() > 0)
+    {
+        pathProducer.getPath(leftChannelFFTPath);
+    }
+    
     if (parametersChanged.compareAndSetBool(false, true))
     {
         //params updated?
         updateChain();
         
         //trigger redraw
-        repaint();
+//        repaint();
     }
+    
+    repaint();
+    
 }
 
 void ResponseCurveComponent::updateChain()
@@ -294,6 +341,9 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
     {
         responseCurve.lineTo(responseArea.getX() + i, map(mags[i]));
     }
+    
+    g.setColour(Colour(ColorPalette::Tertiary));
+    g.strokePath(leftChannelFFTPath, PathStrokeType(1));
     
     g.setColour(Colour(ColorPalette::Tertiary));
     g.drawRoundedRectangle(getRenderArea().toFloat(), 4.f, 1.f);
@@ -447,6 +497,7 @@ ThelassicAudioProcessorEditor::ThelassicAudioProcessorEditor (ThelassicAudioProc
     hiCutSlopeSlider(*audioProcessor.apvts.getParameter("Hi Cut Slope"), "db/oct"),
 
     responseCurveComponent(audioProcessor),
+
     midFreqSliderAttachment(audioProcessor.apvts, "Mid Freq", midFreqSlider),
     midGainSliderAttachment(audioProcessor.apvts, "Mid Gain", midGainSlider),
     midQSliderAttachment(audioProcessor.apvts, "Mid Q", midQSlider),
