@@ -358,8 +358,9 @@ private:
 
     PowerButton loCutBypassButton,
                 midBypassButton,
-                hiCutBypassButton,
-                analyzerEnabledButton;
+                hiCutBypassButton;
+    
+    AnalyzerButton analyzerEnabledButton;
     
     using ButtonAttchment = APVTS::ButtonAttachment;
     
