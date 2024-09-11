@@ -319,5 +319,17 @@ private:
     
     std::vector<juce::Component*> getComps();
 
+    juce::ToggleButton loCutBypassButton,
+                       midBypassButton,
+                       hiCutBypassButton,
+                       analyzerEnabledButton;
+    
+    using ButtonAttchment = APVTS::ButtonAttachment;
+    
+    ButtonAttchment loCutBypassButtonAttachmant,
+                    midBypassButtonAttachment,
+                    hiCutBypassButtonAttachmant,
+                    analyzerEnabledButtonAttachment;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ThelassicAudioProcessorEditor)
 };

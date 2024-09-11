@@ -37,8 +37,10 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="Thelassic" optimisation="3"/>
-        <CONFIGURATION isDebug="0" name="Release" targetName="Thelassic"/>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="Thelassic" optimisation="3"
+                       vst3BinaryLocation="/Library/Audio/Plug-Ins/VST3" enablePluginBinaryCopyStep="0"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="Thelassic" vst3BinaryLocation="$(HOME)/code/foesoft/release-builds/VST3"
+                       aaxBinaryLocation="$(HOME)/code/foesoft/release-builds/AAX"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../../JUCE/modules"/>

@@ -532,7 +532,12 @@ ThelassicAudioProcessorEditor::ThelassicAudioProcessorEditor (ThelassicAudioProc
     loCutFreqSliderAttachment(audioProcessor.apvts, "Lo Cut Freq", loCutFreqSlider),
     hiCutFreqSliderAttachment(audioProcessor.apvts, "Hi Cut Freq", hiCutFreqSlider),
     loCutSlopeSliderAttachment(audioProcessor.apvts, "Lo Cut Slope", loCutSlopeSlider),
-    hiCutSlopeSliderAttachment(audioProcessor.apvts, "Hi Cut Slope", hiCutSlopeSlider)
+    hiCutSlopeSliderAttachment(audioProcessor.apvts, "Hi Cut Slope", hiCutSlopeSlider),
+
+    loCutBypassButtonAttachmant(audioProcessor.apvts, "Lo Cut Bypassed", loCutBypassButton),
+    midBypassButtonAttachment(audioProcessor.apvts, "Mid Bypassed", midBypassButton),
+    hiCutBypassButtonAttachmant(audioProcessor.apvts, "Hi Cut Bypassed", hiCutBypassButton),
+    analyzerEnabledButtonAttachment(audioProcessor.apvts, "Analyzer Enabled", analyzerEnabledButton)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -593,11 +598,15 @@ void ThelassicAudioProcessorEditor::resized()
     auto loCutArea = bounds.removeFromLeft(bounds.getWidth() * 0.33);
     auto hiCutArea = bounds.removeFromRight(bounds.getWidth() * 0.5);
     
+    loCutBypassButton.setBounds(loCutArea.removeFromTop(25));
     loCutFreqSlider.setBounds(loCutArea.removeFromTop(loCutArea.getHeight() * 0.5));
     loCutSlopeSlider.setBounds(loCutArea);
+    
+    hiCutBypassButton.setBounds(hiCutArea.removeFromTop(25));
     hiCutFreqSlider.setBounds(hiCutArea.removeFromTop(hiCutArea.getHeight() * 0.5));
     hiCutSlopeSlider.setBounds(hiCutArea);
     
+    midBypassButton.setBounds(bounds.removeFromTop(25));
     midFreqSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.33));
     midGainSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.5));
     midQSlider.setBounds(bounds);
@@ -615,6 +624,12 @@ std::vector<juce::Component*> ThelassicAudioProcessorEditor::getComps()
         &hiCutFreqSlider,
         &loCutSlopeSlider,
         &hiCutSlopeSlider,
-        &responseCurveComponent
+        
+        &responseCurveComponent,
+        
+        &loCutBypassButton,
+        &midBypassButton,
+        &hiCutBypassButton,
+        &analyzerEnabledButton
     };
 }
