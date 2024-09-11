@@ -93,7 +93,7 @@ void LookAndFeel::drawToggleButton(juce::Graphics &g,
         size -= 6;
         
         powerButton.addCentredArc(r.getCentreX(),
-                                  r.getCentreY(),
+                                  r.getCentreY() + 2,
                                   size * 0.5,
                                   size * 0.5,
                                   0.f,
@@ -101,13 +101,14 @@ void LookAndFeel::drawToggleButton(juce::Graphics &g,
                                   degreesToRadians(360.f - ang),
                                   true);
         
-        powerButton.startNewSubPath(r.getCentreX(), r.getY());
+        powerButton.startNewSubPath(r.getCentreX(), r.getY() + 2);
         powerButton.lineTo(r.getCentre());
         
         PathStrokeType pst(2.f, PathStrokeType::JointStyle::curved);
         
         auto color = toggleButton.getToggleState() ? Colours::dimgrey : Colour(ColorPalette::Accent);
         
+        r.setY(r.getCentreY() - 7);
         g.setColour(color);
         g.strokePath(powerButton, pst);
         g.drawEllipse(r, 2);

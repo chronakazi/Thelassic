@@ -307,7 +307,7 @@ struct AnalyzerButton : juce::ToggleButton
             randomPath.startNewSubPath(insetRect.getX(),
                                        insetRect.getY() + insetRect.getHeight() * r.nextFloat());
             
-            for( auto x = insetRect.getX() + 1; x < insetRect.getRight(); x += 2 )
+            for( auto x = insetRect.getX() + 1; x < insetRect.getRight(); x += 4 )
             {
                 randomPath.lineTo(x,
                                   insetRect.getY() + insetRect.getHeight() * r.nextFloat());
