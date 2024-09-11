@@ -273,6 +273,11 @@ void ResponseCurveComponent::timerCallback()
 void ResponseCurveComponent::updateChain()
 {
     auto chainSettings = getChainSettings(audioProcessor.apvts);
+    
+    monoChain.setBypassed<ChainPositions::LoCut>(chainSettings.loCutBypassed);
+    monoChain.setBypassed<ChainPositions::Mid>(chainSettings.midBypassed);
+    monoChain.setBypassed<ChainPositions::HiCut>(chainSettings.hiCutBypassed);
+    
     auto peakCoefficients = makePeakFilter(chainSettings, audioProcessor.getSampleRate());
     updateCoefficients(monoChain.get<ChainPositions::Mid>().coefficients, peakCoefficients);
     
@@ -311,23 +316,29 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
         if (!monoChain.isBypassed<ChainPositions::Mid>())
             mag *= mid.coefficients->getMagnitudeForFrequency(freq, sampleRate);
         
-        if (!locut.isBypassed<0>())
-            mag *= locut.get<0>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
-        if (!locut.isBypassed<1>())
-            mag *= locut.get<1>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
-        if (!locut.isBypassed<2>())
-            mag *= locut.get<2>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
-        if (!locut.isBypassed<3>())
-            mag *= locut.get<3>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+        if (! monoChain.isBypassed<ChainPositions::LoCut>())
+        {
+            if (!locut.isBypassed<0>())
+                mag *= locut.get<0>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+            if (!locut.isBypassed<1>())
+                mag *= locut.get<1>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+            if (!locut.isBypassed<2>())
+                mag *= locut.get<2>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+            if (!locut.isBypassed<3>())
+                mag *= locut.get<3>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+        }
         
-        if (!hicut.isBypassed<0>())
-            mag *= hicut.get<0>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
-        if (!hicut.isBypassed<1>())
-            mag *= hicut.get<1>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
-        if (!hicut.isBypassed<2>())
-            mag *= hicut.get<2>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
-        if (!hicut.isBypassed<3>())
-            mag *= hicut.get<3>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+        if (! monoChain.isBypassed<ChainPositions::HiCut>())
+        {
+            if (!hicut.isBypassed<0>())
+                mag *= hicut.get<0>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+            if (!hicut.isBypassed<1>())
+                mag *= hicut.get<1>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+            if (!hicut.isBypassed<2>())
+                mag *= hicut.get<2>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+            if (!hicut.isBypassed<3>())
+                mag *= hicut.get<3>().coefficients->getMagnitudeForFrequency(freq, sampleRate);
+        }
         
         mags [i] = Decibels::gainToDecibels(mag);
     }
