@@ -182,6 +182,11 @@ struct LookAndFeel : juce::LookAndFeel_V4
                           float rotaryStartAngle,
                           float rotaryEndAngle,
                           juce::Slider&) override;
+    
+    void drawToggleButton (juce::Graphics & g,
+                           juce::ToggleButton & button,
+                           bool shouldDrawButtonAsHighlighted,
+                           bool shouldDrawButtonAsDown) override;
 };
 
 struct RotarySliderWithLabels : juce::Slider
@@ -255,11 +260,19 @@ juce::Timer
     
     void timerCallback() override;
     
+    void toggleAnalysisEnablement(bool enabled)
+    {
+        shouldShowFFTAnalysis = enabled;
+    }
+    
     void paint(juce::Graphics& g) override;
     
     void resized() override;
 private:
     ThelassicAudioProcessor& audioProcessor;
+    
+    bool shouldShowFFTAnalysis = true;
+    
     juce::Atomic<bool> parametersChanged {false};
     
     MonoChain monoChain;
@@ -279,6 +292,30 @@ private:
 };
 
 //==============================================================================
+struct PowerButton : juce::ToggleButton {};
+struct AnalyzerButton : juce::ToggleButton 
+{
+    void resized() override
+        {
+            auto bounds = getLocalBounds();
+            auto insetRect = bounds.reduced(4);
+            
+            randomPath.clear();
+            
+            juce::Random r;
+            
+            randomPath.startNewSubPath(insetRect.getX(),
+                                       insetRect.getY() + insetRect.getHeight() * r.nextFloat());
+            
+            for( auto x = insetRect.getX() + 1; x < insetRect.getRight(); x += 2 )
+            {
+                randomPath.lineTo(x,
+                                  insetRect.getY() + insetRect.getHeight() * r.nextFloat());
+            }
+        }
+        
+        juce::Path randomPath;
+};
 /**
 */
 class ThelassicAudioProcessorEditor  : public juce::AudioProcessorEditor
@@ -319,10 +356,10 @@ private:
     
     std::vector<juce::Component*> getComps();
 
-    juce::ToggleButton loCutBypassButton,
-                       midBypassButton,
-                       hiCutBypassButton,
-                       analyzerEnabledButton;
+    PowerButton loCutBypassButton,
+                midBypassButton,
+                hiCutBypassButton,
+                analyzerEnabledButton;
     
     using ButtonAttchment = APVTS::ButtonAttachment;
     
@@ -330,6 +367,8 @@ private:
                     midBypassButtonAttachment,
                     hiCutBypassButtonAttachmant,
                     analyzerEnabledButtonAttachment;
+    
+    LookAndFeel lnf;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ThelassicAudioProcessorEditor)
 };
