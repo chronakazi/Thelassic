@@ -23,8 +23,10 @@ void LookAndFeel::drawRotarySlider(juce::Graphics & g,
     
     auto bounds = Rectangle<float>(x, y, width, height);
     
+    auto enabled = slider.isEnabled();
+    
 //    Rotary slider bg color
-    g.setColour(Colour(ColorPalette::Accent));
+    g.setColour(enabled ? Colour(ColorPalette::Accent) : Colour(ColorPalette::Secondary));
     g.fillEllipse(bounds);
     
 //    Rotary slider border color.
@@ -61,10 +63,10 @@ void LookAndFeel::drawRotarySlider(juce::Graphics & g,
         r.setSize(strWidth + 4, rswl->getTextHeight() + 2);
         r.setCentre(bounds.getCentre());
         
-        g.setColour(Colour(ColorPalette::Accent));
+        g.setColour(enabled ? Colour(ColorPalette::Accent) : Colour(ColorPalette::Secondary));
         g.fillRect(r);
         
-        g.setColour(Colour(ColorPalette::Secondary));
+        g.setColour(enabled ? Colour(ColorPalette::Secondary) : Colour(ColorPalette::Accent));
         g.drawFittedText(text, r.toNearestInt(), juce::Justification::centred, 1);
     }
 
