@@ -85,12 +85,12 @@ void LookAndFeel::drawToggleButton(juce::Graphics &g,
         
         auto bounds = toggleButton.getLocalBounds();
         
-        auto size = jmin(bounds.getWidth(), bounds.getHeight()) - 6;
+        auto size = jmin(bounds.getWidth(), bounds.getHeight()) - 7;
         auto r = bounds.withSizeKeepingCentre(size, size).toFloat();
         
         float ang = 30.f; //30.f;
         
-        size -= 6;
+        size -= 8;
         
         powerButton.addCentredArc(r.getCentreX(),
                                   r.getCentreY() + 2,
@@ -111,7 +111,7 @@ void LookAndFeel::drawToggleButton(juce::Graphics &g,
         r.setY(r.getCentreY() - 7);
         g.setColour(color);
         g.strokePath(powerButton, pst);
-        g.drawEllipse(r, 2);
+        g.drawEllipse(r, 1.f);
     }
     else if (auto* analyzerButton = dynamic_cast<AnalyzerButton*>(&toggleButton))
     {
