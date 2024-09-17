@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="babI9k" name="Thelassic" projectType="audioplug" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" version="0.1.0"
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" version="1.0.0"
               companyName="FOEsoft" companyCopyright="&#169;2024" companyEmail="admin@foesoft.com"
               pluginFormats="buildAAX,buildStandalone,buildVST3" pluginChannelConfigs="{2, 2}"
               pluginVST3Category="Filter,Fx" pluginAAXCategory="1,8192" pluginAUMainType="'aufx'"

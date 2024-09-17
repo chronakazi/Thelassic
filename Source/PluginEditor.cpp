@@ -334,8 +334,6 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
     
     drawBackgroundGrid(g);
 
-    auto responseArea = getAnalysisArea();
-    
 //    FFT analysis path
     if (shouldShowFFTAnalysis)
     {
