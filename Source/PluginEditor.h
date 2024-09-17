@@ -277,9 +277,18 @@ private:
     
     MonoChain monoChain;
     
+    void updateResponseCurve();
+    
+    juce::Path responseCurve;
+    
     void updateChain();
     
-    juce::Image background;
+    void drawBackgroundGrid(juce::Graphics& g);
+    void drawTextLabels(juce::Graphics& g);
+    
+    std::vector<float> getFrequencies();
+    std::vector<float> getGains();
+    std::vector<float> getXs(const std::vector<float>& freqs, float left, float width);
     
     juce::Rectangle<int> getRenderArea();
     
